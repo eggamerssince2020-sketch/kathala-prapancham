@@ -1,17 +1,21 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc, Timestamp, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, Timestamp, collection, query, onSnapshot } from 'firebase/firestore';
 import { firestore } from '../../../../firebase';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import CommentForm from '@/components/CommentForm';
-import CommentsList from '@/components/CommentsList'; // Import the new component
+import CommentsList from '@/components/CommentsList';
+import LikeButton from '@/components/LikeButton';
+import SaveButton from '@/components/SaveButton'; // --- 1. IMPORT THE SAVE BUTTON ---
 
 interface Story {
     title: string;
     content: string;
     authorName: string;
+    authorId: string;
     thumbnailUrl: string;
     createdAt: Timestamp;
 }
@@ -22,12 +26,11 @@ export default function StoryPage() {
 
     const [story, setStory] = useState<Story | null>(null);
     const [loading, setLoading] = useState(true);
-    const [commentCount, setCommentCount] = useState(0); // Optional: state to hold comment count
+    const [commentCount, setCommentCount] = useState(0);
 
     useEffect(() => {
         if (!id) return;
         
-        // Fetch the main story data
         const fetchStory = async () => {
             try {
                 const storyRef = doc(firestore, 'stories', id);
@@ -46,14 +49,12 @@ export default function StoryPage() {
 
         fetchStory();
         
-        // Optional: Listen to comment count changes in real-time
         const commentsQuery = query(collection(firestore, 'stories', id, 'comments'));
         const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
             setCommentCount(snapshot.size);
         });
 
         return () => unsubscribe();
-
     }, [id]);
 
     if (loading) {
@@ -67,9 +68,19 @@ export default function StoryPage() {
     return (
         <div className="max-w-4xl mx-auto py-12 px-4">
             <h1 className="text-4xl font-extrabold text-gray-900 text-center mb-4">{story.title}</h1>
-            <p className="text-center text-lg text-gray-500 mb-8">by {story.authorName}</p>
             
-            <div className="relative h-96 w-full mb-8 rounded-lg overflow-hidden">
+            <div className="flex justify-center items-center gap-6 text-lg text-gray-500 mb-8">
+                <Link href={`/author/${story.authorId}`} className="hover:underline">
+                    by {story.authorName}
+                </Link>
+                <div className="flex items-center gap-4">
+                    <LikeButton storyId={id} />
+                    {/* --- 2. ADD THE SAVE BUTTON HERE --- */}
+                    <SaveButton storyId={id} />
+                </div>
+            </div>
+            
+            <div className="relative h-96 w-full mb-8 rounded-lg overflow-hidden shadow-lg">
                 <Image
                     src={story.thumbnailUrl}
                     alt={story.title}
@@ -82,14 +93,9 @@ export default function StoryPage() {
                 <p>{story.content}</p>
             </div>
 
-            {/* --- FINAL COMMENTS SECTION --- */}
             <div className="border-t pt-8">
                 <h2 className="text-2xl font-bold mb-4">{commentCount} Comments</h2>
-                
-                {/* The form to add a new comment */}
-                <CommentForm storyId={id} onCommentPosted={() => { /* No action needed here anymore */ }} />
-                
-                {/* The list that displays comments in real-time */}
+                <CommentForm storyId={id} onCommentPosted={() => {}} />
                 <CommentsList storyId={id} />
             </div>
         </div>
