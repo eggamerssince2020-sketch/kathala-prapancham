@@ -16,6 +16,7 @@ interface Story {
   thumbnailUrl: string;
 }
 
+// --- 1. Updated UserProfile Interface with Follower Counts ---
 interface UserProfile {
   uid: string;
   username: string;
@@ -23,6 +24,8 @@ interface UserProfile {
   role: 'reader' | 'author';
   photoURL?: string;
   bio?: string;
+  followersCount?: number; // Optional: Number of people following this user
+  followingCount?: number; // Optional: Number of people this user is following
 }
 
 export default function ProfilePage() {
@@ -30,7 +33,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  // State for new features and editing
+  // State for features and editing
   const [publishedStories, setPublishedStories] = useState<Story[]>([]);
   const [activeTab, setActiveTab] = useState('about');
   const [isEditing, setIsEditing] = useState(false);
@@ -38,7 +41,7 @@ export default function ProfilePage() {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Effect to fetch all user data (profile and stories)
+  // Effect to fetch all user data
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -55,7 +58,6 @@ export default function ProfilePage() {
         setProfile(profileData);
         setEditableBio(profileData.bio || "");
 
-        // If the user is an author, also fetch their stories
         if (profileData.role === 'author') {
           const storiesQuery = query(collection(firestore, "stories"), where("authorId", "==", user.uid));
           const querySnapshot = await getDocs(storiesQuery);
@@ -70,12 +72,11 @@ export default function ProfilePage() {
     fetchProfileAndStories();
   }, [user, loading, router]);
 
-  // Handler to save profile picture and bio changes
+  // Handler for saving bio and profile picture
   const handleSaveChanges = async () => {
     if (!user) return;
     setIsUploading(true);
     let photoURL = profile?.photoURL;
-
     if (profileImageFile) {
       const storageRef = ref(storage, `profile_pictures/${user.uid}`);
       try {
@@ -83,11 +84,9 @@ export default function ProfilePage() {
         photoURL = await getDownloadURL(storageRef);
       } catch (error) {
         alert("Error uploading image.");
-        setIsUploading(false);
-        return;
+        setIsUploading(false); return;
       }
     }
-
     const updatedData = { bio: editableBio, photoURL };
     try {
       const userDocRef = doc(firestore, "users", user.uid);
@@ -103,24 +102,19 @@ export default function ProfilePage() {
     }
   };
 
-  // --- NEW: Handler for the role toggle switch ---
+  // Handler for the role toggle switch
   const handleRoleChange = async (newRole: 'reader' | 'author') => {
     if (!user || !profile) return;
-    
     const oldRole = profile.role;
-    setProfile({ ...profile, role: newRole }); // Update UI immediately
-
-    if (newRole === 'reader') {
-      setActiveTab('about'); // Force tab back to 'About' if they are no longer an author
-    }
-
+    setProfile({ ...profile, role: newRole });
+    if (newRole === 'reader') setActiveTab('about');
     try {
       const userDocRef = doc(firestore, "users", user.uid);
       await updateDoc(userDocRef, { role: newRole });
     } catch (error) {
       console.error("Failed to update role:", error);
-      setProfile({ ...profile, role: oldRole }); // Revert on error
-      alert("Failed to update role. Please try again.");
+      setProfile({ ...profile, role: oldRole });
+      alert("Failed to update role.");
     }
   };
 
@@ -128,13 +122,13 @@ export default function ProfilePage() {
     return <p className="text-center p-8">Loading Profile...</p>;
   }
 
-  // --- Final JSX combining all features ---
+  // --- JSX updated with follower/following counts ---
   return (
     <div className="max-w-4xl mx-auto mt-10 p-4 sm:p-8">
       {isEditing ? (
-        // --- EDITING UI ---
         <div className="bg-white shadow-lg rounded-lg p-8">
           <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
+          {/* Edit form remains unchanged */}
           <div className="flex items-center space-x-4 mb-6">
             <Image src={profile.photoURL || '/default-avatar.png'} alt="Profile" width={80} height={80} className="rounded-full object-cover"/>
             <div>
@@ -153,21 +147,34 @@ export default function ProfilePage() {
           </div>
         </div>
       ) : (
-        // --- VIEWING UI (WITH TABS) ---
         <div>
           <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
-            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
+            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
               <Image src={profile.photoURL || '/default-avatar.png'} alt="Profile" width={120} height={120} className="rounded-full object-cover shadow-md"/>
-              <div className="text-center sm:text-left">
+              <div className="text-center sm:text-left flex-grow">
                 <h1 className="text-4xl font-bold">{profile.username}</h1>
                 <p className="text-gray-600">{profile.email}</p>
                 <p className="text-sm text-gray-500 capitalize mt-1">Current Role: {profile.role}</p>
+                
+                {/* --- 2. New Follower Stats Section --- */}
+                <div className="flex justify-center sm:justify-start space-x-4 mt-4">
+                  <div className="text-center">
+                    <p className="font-bold text-lg">{profile.followersCount || 0}</p>
+                    <p className="text-sm text-gray-500">Followers</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-bold text-lg">{profile.followingCount || 0}</p>
+                    <p className="text-sm text-gray-500">Following</p>
+                  </div>
+                </div>
+
               </div>
             </div>
-            <button onClick={() => setIsEditing(true)} className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600">Edit Profile</button>
+            <button onClick={() => setIsEditing(true)} className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 mt-6">Edit Profile</button>
           </div>
           
           <div className="bg-white shadow-lg rounded-lg p-8">
+            {/* Tabs and Tab Content sections remain unchanged */}
             <div className="border-b border-gray-200 mb-6">
               <nav className="flex space-x-6">
                 <button onClick={() => setActiveTab('about')} className={`py-2 px-1 font-semibold ${activeTab === 'about' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>About</button>
@@ -176,7 +183,6 @@ export default function ProfilePage() {
                 )}
               </nav>
             </div>
-            
             <div>
               {activeTab === 'about' && (
                 <div>
@@ -196,7 +202,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
-
               {activeTab === 'stories' && profile.role === 'author' && (
                 <div>
                   {publishedStories.length > 0 ? (
