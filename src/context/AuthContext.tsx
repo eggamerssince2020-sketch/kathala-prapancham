@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -12,54 +12,93 @@ import {
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, firestore } from "../../firebase";
 
+// Define your full user profile from Firestore
+interface UserProfile {
+  uid: string;
+  username: string;
+  email: string;
+  role: 'reader' | 'author';
+  photoURL?: string;
+  bio?: string;
+}
+
+// Create a new, combined user type
+export interface AppUser extends FirebaseUser {
+  profile?: UserProfile; 
+}
+
+// Update the context's type definition
 interface AuthContextType {
-  user: FirebaseUser | null;
+  user: AppUser | null;
   loading: boolean;
-  signUp: (username: string, email: string, password: string) => Promise<void>;
+  signUp: (username: string, email: string, password:string) => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // This listener now correctly handles existing user sessions
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDocRef = doc(firestore, "users", firebaseUser.uid);
+        const docSnap = await getDoc(userDocRef);
+
+        if (docSnap.exists()) {
+          const userProfile = docSnap.data() as UserProfile;
+          setUser({ ...firebaseUser, profile: userProfile });
+        } else {
+          // This might happen if a user was created but their profile doc failed
+          setUser(firebaseUser);
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
+  // --- THE FINAL FIX: Manually build the user object on signUp ---
   const signUp = async (username: string, email: string, password: string) => {
     try {
-      // 1. Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const fbUser = userCredential.user;
-
-      // 2. Update their Auth profile with the username
       await updateProfile(fbUser, { displayName: username });
 
-      // 3. THIS IS THE CRUCIAL STEP: Create the user document in Firestore
-      const userDocRef = doc(firestore, "users", fbUser.uid);
-      await setDoc(userDocRef, {
+      // 1. Create the profile data object first
+      const userProfileData: UserProfile = {
         uid: fbUser.uid,
         username: username,
         email: email,
-        role: 'reader', // All new users are readers
-      });
+        role: 'reader',
+      };
       
+      // 2. Save it to Firestore
+      const userDocRef = doc(firestore, "users", fbUser.uid);
+      await setDoc(userDocRef, userProfileData);
+
+      // 3. Immediately create and set the full AppUser in the state
+      // This eliminates the race condition.
+      setUser({
+        ...fbUser,
+        profile: userProfileData,
+      });
+
     } catch (error) {
       console.error("Error during sign up:", error);
-      throw error; // Let the UI handle the error message
+      throw error;
     }
   };
 
   const logIn = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
+    // The onAuthStateChanged listener will handle fetching the profile after login
   };
 
   const logOut = async () => {

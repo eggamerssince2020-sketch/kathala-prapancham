@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from '../../../firebase';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext'; // Imports useAuth from your newly updated context
 
 const genres = ["Horror", "Comedy", "Romance", "Sci-Fi", "Fantasy", "Thriller", "Mystery", "Adventure", "Drama"];
 
 export default function CreateStoryPage() {
-    const { user, loading } = useAuth();
+    // The 'user' object from useAuth will now contain the '.profile' property
+    const { user, loading } = useAuth(); 
     const router = useRouter();
     
     const [title, setTitle] = useState('');
@@ -22,7 +23,6 @@ export default function CreateStoryPage() {
     const [error, setError] = useState('');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // THIS IS THE FIX: We check if files exist and take the first one.
         if (e.target.files && e.target.files.length > 0) {
             setThumbnail(e.target.files[0]);
         }
@@ -30,7 +30,9 @@ export default function CreateStoryPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) {
+
+        // 1. This check will now work correctly because the user object has the profile
+        if (!user || !user.profile) {
             setError("You must be logged in to create a story.");
             return;
         }
@@ -48,13 +50,15 @@ export default function CreateStoryPage() {
             const uploadResult = await uploadBytes(storageRef, thumbnail);
             const thumbnailUrl = await getDownloadURL(uploadResult.ref);
 
+            // 2. This is the final fix: We save the username from the profile
             await addDoc(collection(firestore, 'stories'), {
                 title,
                 content,
                 genre,
                 thumbnailUrl,
                 authorId: user.uid,
-                authorName: user.displayName,
+                authorName: user.profile.username, // Using the username for consistency
+                authorUsername: user.profile.username, // This finally adds the username for the link
                 createdAt: serverTimestamp(),
                 likes: 0,
             });

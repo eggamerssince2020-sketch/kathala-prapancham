@@ -11,14 +11,15 @@ import CommentsList from '@/components/CommentsList';
 import LikeButton from '@/components/LikeButton';
 import SaveButton from '@/components/SaveButton';
 
-// --- 1. UPDATED INTERFACE ---
-// We've added `authorUsername` which is crucial for the new link.
+// --- 1. INTERFACE UPDATED ---
+// The `authorUsername` field is added. It's optional ('?') so the app won't crash
+// if old stories don't have it yet.
 interface Story {
     title: string;
     content: string;
     authorName: string;
     authorId: string;
-    authorUsername: string; // Make sure this field exists on your story documents!
+    authorUsername?: string; // This is the crucial new field
     thumbnailUrl: string;
     createdAt: Timestamp;
 }
@@ -73,11 +74,18 @@ export default function StoryPage() {
             <h1 className="text-4xl font-extrabold text-gray-900 text-center mb-4">{story.title}</h1>
             
             <div className="flex justify-center items-center gap-6 text-lg text-gray-500 mb-8">
-                {/* --- 2. CORRECTED LINK --- */}
-                {/* This now points to the public user profile page using the author's username. */}
-                <Link href={`/users/${story.authorUsername}`} className="hover:underline">
-                    by {story.authorName}
-                </Link>
+                
+                {/* --- 2. LINK CORRECTED --- */}
+                {/* It now checks if authorUsername exists. If so, it links to the correct page.
+                    If not, it just displays the name as plain text. */}
+                {story.authorUsername ? (
+                    <Link href={`/users/${story.authorUsername}`} className="hover:underline">
+                        by {story.authorName}
+                    </Link>
+                ) : (
+                    <span>by {story.authorName}</span>
+                )}
+
                 <div className="flex items-center gap-4">
                     <LikeButton storyId={id} />
                     <SaveButton storyId={id} />
