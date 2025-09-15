@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
+import { HiMenu, HiPencilAlt, HiBookmark, HiUser, HiOutlineLogout } from 'react-icons/hi';
 
 export default function Header() {
-  const { user, logOut } = useAuth(); // Correctly using logOut
+  const { user, logOut } = useAuth();
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -22,61 +23,87 @@ export default function Header() {
           {/* Right-aligned items */}
           <div className="flex items-center space-x-4">
             {user ? (
-              // --- LOGGED-IN VIEW ---
-              <>
-                <Link href="/create-story" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-                  Create Story
-                </Link>
-                <Link href="/saved-stories" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-                  Saved Stories
-                </Link>
+              // --- LOGGED-IN VIEW WITH FINAL MENU DESIGN ---
+              <Menu as="div" className="relative">
+                {/* Hamburger Menu Button */}
+                <Menu.Button className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800">
+                  <span className="sr-only">Open menu</span>
+                  <HiMenu className="h-6 w-6 text-gray-800" />
+                </Menu.Button>
 
-                {/* Improved User Dropdown Menu */}
-                <Menu as="div" className="relative">
-                  <div>
-                    <Menu.Button className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800">
-                      <span className="sr-only">Open user menu</span>
-                      <div className="h-9 w-9 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold text-lg">
-                        {user.displayName?.charAt(0).toUpperCase()}
+                {/* Dropdown Panel */}
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="origin-top-right absolute right-0 mt-2 w-60 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
+                    {/* --- UPDATED PROFILE SECTION --- */}
+                    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
+                      <img
+                        className="h-11 w-11 rounded-full border-2 border-blue-500 object-cover"
+                        src={user.photoURL || '/default-profile-icon.png'} // Fallback image
+                        alt="Profile picture"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800 truncate">
+                          {user.profile?.username || user.displayName}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Personal Menu
+                        </p>
                       </div>
-                    </Menu.Button>
-                  </div>
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-100"
-                    enterFrom="transform opacity-0 scale-95"
-                    enterTo="transform opacity-100 scale-100"
-                    leave="transition ease-in duration-75"
-                    leaveFrom="transform opacity-100 scale-100"
-                    leaveTo="transform opacity-0 scale-95"
-                  >
-                    <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div className="px-4 py-3">
-                        <p className="text-sm">Signed in as</p>
-                        <p className="text-sm font-medium text-gray-900 truncate">{user.displayName}</p>
-                      </div>
-                      <div className="border-t border-gray-100"></div>
+                    </div>
+                    
+                    {/* --- MENU ACTIONS --- */}
+                    <div className="py-1">
                       <Menu.Item>
                         {({ active }) => (
-                          <Link href="/profile" className={`${active ? 'bg-gray-100' : ''} block px-4 py-2 text-sm text-gray-700`}>
+                          <Link href="/create-story" className={`${active ? 'bg-green-50' : ''} flex w-full items-center px-4 py-2.5 text-sm font-medium text-green-700`}>
+                            <HiPencilAlt className="mr-3 h-5 w-5" />
+                            Create Story
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link href="/saved" className={`${active ? 'bg-purple-50' : ''} flex w-full items-center px-4 py-2.5 text-sm font-medium text-purple-700`}>
+                            <HiBookmark className="mr-3 h-5 w-5" />
+                            Saved Stories
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link href={`/users/${user.profile?.username}`} className={`${active ? 'bg-blue-50' : ''} flex w-full items-center px-4 py-2.5 text-sm font-medium text-blue-700`}>
+                            <HiUser className="mr-3 h-5 w-5" />
                             My Profile
                           </Link>
                         )}
                       </Menu.Item>
-                      <div className="border-t border-gray-100"></div>
+                    </div>
+                    <div className="py-1 border-t border-gray-100">
                       <Menu.Item>
                         {({ active }) => (
-                          <button onClick={logOut} className={`${active ? 'bg-gray-100' : ''} w-full text-left block px-4 py-2 text-sm text-gray-700`}>
+                          <button
+                            onClick={logOut}
+                            className={`${active ? 'bg-red-50' : ''} flex w-full items-center px-4 py-2.5 text-sm font-medium text-red-600`}
+                          >
+                            <HiOutlineLogout className="mr-3 h-5 w-5" />
                             Log Out
                           </button>
                         )}
                       </Menu.Item>
-                    </Menu.Items>
-                  </Transition>
-                </Menu>
-              </>
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
             ) : (
-              // --- LOGGED-OUT VIEW ---
+              // --- LOGGED-OUT VIEW (Unchanged) ---
               <>
                 <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
                   Log In
