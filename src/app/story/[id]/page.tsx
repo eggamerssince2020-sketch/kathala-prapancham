@@ -9,13 +9,16 @@ import Link from 'next/link';
 import CommentForm from '@/components/CommentForm';
 import CommentsList from '@/components/CommentsList';
 import LikeButton from '@/components/LikeButton';
-import SaveButton from '@/components/SaveButton'; // --- 1. IMPORT THE SAVE BUTTON ---
+import SaveButton from '@/components/SaveButton';
 
+// --- 1. UPDATED INTERFACE ---
+// We've added `authorUsername` which is crucial for the new link.
 interface Story {
     title: string;
     content: string;
     authorName: string;
     authorId: string;
+    authorUsername: string; // Make sure this field exists on your story documents!
     thumbnailUrl: string;
     createdAt: Timestamp;
 }
@@ -70,12 +73,13 @@ export default function StoryPage() {
             <h1 className="text-4xl font-extrabold text-gray-900 text-center mb-4">{story.title}</h1>
             
             <div className="flex justify-center items-center gap-6 text-lg text-gray-500 mb-8">
-                <Link href={`/author/${story.authorId}`} className="hover:underline">
+                {/* --- 2. CORRECTED LINK --- */}
+                {/* This now points to the public user profile page using the author's username. */}
+                <Link href={`/users/${story.authorUsername}`} className="hover:underline">
                     by {story.authorName}
                 </Link>
                 <div className="flex items-center gap-4">
                     <LikeButton storyId={id} />
-                    {/* --- 2. ADD THE SAVE BUTTON HERE --- */}
                     <SaveButton storyId={id} />
                 </div>
             </div>
