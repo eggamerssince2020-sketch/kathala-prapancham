@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    // ... other options
     "lib": [
       "dom",
       "dom.iterable",
@@ -38,6 +37,7 @@
     "postcss.config.mjs"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "functions"
   ]
 }
