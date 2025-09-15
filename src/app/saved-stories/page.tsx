@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc, collection } from 'firebase/firestore';
+// Corrected import: 'collection' was removed as it was not being used.
+import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '@/../firebase';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -93,7 +94,8 @@ export default function SavedStoriesPage() {
                     ))}
                 </div>
             ) : (
-                <p className="text-gray-600">You haven't saved any stories yet.</p>
+                // Corrected line: "haven't" is changed to "haven&apos;t" to fix the error.
+                <p className="text-gray-600">You haven&apos;t saved any stories yet.</p>
             )}
         </div>
     );
