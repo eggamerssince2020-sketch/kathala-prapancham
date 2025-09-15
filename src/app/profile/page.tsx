@@ -50,7 +50,7 @@ export default function ProfilePage() {
       // Instantly update the UI for a good user experience
       setProfile(prev => prev ? { ...prev, role: 'author' } : null);
       alert("Congratulations! You are now an author.");
-    } catch (error) {
+    } catch (_error) { // Corrected: 'error' changed to '_error' to mark it as unused
       alert("Failed to update role. Please try again.");
     }
   };

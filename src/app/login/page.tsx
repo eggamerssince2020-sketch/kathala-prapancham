@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       await logIn(email, password);
       // Redirect is handled by useEffect
-    } catch (err) {
+    } catch (_err) { // Corrected: 'err' changed to '_err' to mark it as unused
       setError("Failed to log in.");
     }
   };
