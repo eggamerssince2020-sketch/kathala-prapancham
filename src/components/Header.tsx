@@ -18,11 +18,11 @@ export default function Header() {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-3">
               <Image
-                src="/logo.png" // Assumes your logo is saved as 'logo.png' in the 'public' folder
+                src="/logo.png"
                 alt="Kathala Prapancham Logo"
                 width={40}
                 height={40}
-                priority // Helps load the logo faster
+                priority
               />
               <span className="text-2xl font-bold text-gray-800 hover:text-gray-900 transition-colors hidden sm:block">
                 Kathala Prapancham
@@ -30,7 +30,6 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Right-aligned items */}
           <div className="flex items-center space-x-4">
             {user ? (
               <Menu as="div" className="relative">
@@ -82,12 +81,16 @@ export default function Header() {
                           </Link>
                         )}
                       </Menu.Item>
+                      {/* --- 3. DYNAMIC LINK FIX FOR VERCEL --- */}
                       <Menu.Item>
                         {({ active }) => (
-                          <Link href={`/users/${user.profile?.username}`} className={`${active ? 'bg-blue-500/20' : ''} flex w-full items-center px-4 py-2.5 text-sm font-medium text-blue-700`}>
+                          <a 
+                            href={`/users/${user.profile?.username}`} 
+                            className={`${active ? 'bg-blue-500/20' : ''} flex w-full items-center px-4 py-2.5 text-sm font-medium text-blue-700`}
+                          >
                             <HiUser className="mr-3 h-5 w-5" />
                             My Profile
-                          </Link>
+                          </a>
                         )}
                       </Menu.Item>
                     </div>

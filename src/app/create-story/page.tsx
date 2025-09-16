@@ -5,12 +5,18 @@ import { useRouter } from 'next/navigation';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from '../../../firebase';
-import { useAuth } from '@/context/AuthContext'; // Imports useAuth from your newly updated context
+import { useAuth } from '@/context/AuthContext';
+import dynamic from 'next/dynamic';
+import 'react-quill-new/dist/quill.snow.css'; // Import Quill's styles from the new package
+import { WavyBackground } from '@/components/WavyBackground';
+
+// Dynamically import ReactQuill to prevent SSR issues
+// To this:
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 const genres = ["Horror", "Comedy", "Romance", "Sci-Fi", "Fantasy", "Thriller", "Mystery", "Adventure", "Drama"];
 
 export default function CreateStoryPage() {
-    // The 'user' object from useAuth will now contain the '.profile' property
     const { user, loading } = useAuth(); 
     const router = useRouter();
     
@@ -18,20 +24,22 @@ export default function CreateStoryPage() {
     const [content, setContent] = useState('');
     const [genre, setGenre] = useState('');
     const [thumbnail, setThumbnail] = useState<File | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setThumbnail(e.target.files[0]);
+            const file = e.target.files[0];
+            setThumbnail(file);
+            setThumbnailPreview(URL.createObjectURL(file));
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // 1. This check will now work correctly because the user object has the profile
         if (!user || !user.profile) {
             setError("You must be logged in to create a story.");
             return;
@@ -50,24 +58,22 @@ export default function CreateStoryPage() {
             const uploadResult = await uploadBytes(storageRef, thumbnail);
             const thumbnailUrl = await getDownloadURL(uploadResult.ref);
 
-            // 2. This is the final fix: We save the username from the profile
             await addDoc(collection(firestore, 'stories'), {
                 title,
                 content,
                 genre,
                 thumbnailUrl,
                 authorId: user.uid,
-                authorName: user.profile.username, // Using the username for consistency
-                authorUsername: user.profile.username, // This finally adds the username for the link
+                authorName: user.profile.username,
                 createdAt: serverTimestamp(),
                 likes: 0,
             });
 
             router.push('/');
-
         } catch (err) {
             console.error("Error creating story:", err);
             setError("Failed to publish story. Please try again.");
+        } finally {
             setIsSubmitting(false);
         }
     };
@@ -81,35 +87,64 @@ export default function CreateStoryPage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto mt-10 p-8 bg-white shadow-md rounded-lg">
-            <h1 className="text-3xl font-bold mb-8 text-center">Create a New Story</h1>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-                    <input id="title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
+        <WavyBackground
+            backgroundFill="#fefae0"
+            colors={["#fa9451", "#ffc071", "#ff6b6b", "#e07a5f"]}
+            waveOpacity={0.4}
+            blur={15}
+        >
+            <div className="min-h-screen py-12 px-4">
+                <div className="max-w-4xl mx-auto p-8 bg-white/40 backdrop-blur-xl rounded-2xl shadow-2xl">
+                    <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
+                        Share Your Story
+                    </h1>
+                    
+                    {error && <p className="mb-4 text-center bg-red-500/20 text-red-800 p-3 rounded-md">{error}</p>}
+
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div>
+                            <label htmlFor="title" className="block mb-2 font-semibold text-gray-700">Title</label>
+                            <input id="title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full p-3 bg-white/60 border border-gray-300/50 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"/>
+                        </div>
+                        
+                        <div>
+                            <label className="block mb-2 font-semibold text-gray-700">Content</label>
+                            <div className="bg-white/60 rounded-lg">
+                                <ReactQuill
+                                    theme="snow"
+                                    value={content}
+                                    onChange={setContent}
+                                    modules={{ toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }]] }}
+                                    className="min-h-[250px]"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label htmlFor="genre" className="block mb-2 font-semibold text-gray-700">Genre</label>
+                                <select id="genre" value={genre} onChange={(e) => setGenre(e.target.value)} required className="w-full p-3 bg-white/60 border border-gray-300/50 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition">
+                                    <option value="" disabled>Select a genre...</option>
+                                    {genres.map(g => <option key={g} value={g}>{g}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="thumbnail" className="block mb-2 font-semibold text-gray-700">Cover Image</label>
+                                <input id="thumbnail" type="file" onChange={handleFileChange} required accept="image/*" className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200"/>
+                                {thumbnailPreview && (
+                                    <div className="mt-4">
+                                        <img src={thumbnailPreview} alt="Thumbnail Preview" className="max-h-40 rounded-lg object-cover shadow-md"/>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold p-4 rounded-lg shadow-lg hover:scale-105 transform transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
+                            {isSubmitting ? 'Publishing...' : 'Publish Story'}
+                        </button>
+                    </form>
                 </div>
-                <div>
-                    <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
-                    <textarea id="content" value={content} onChange={(e) => setContent(e.target.value)} required rows={10} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
-                </div>
-                <div>
-                    <label htmlFor="genre" className="block text-sm font-medium text-gray-700">Genre</label>
-                    <select id="genre" value={genre} onChange={(e) => setGenre(e.target.value)} required className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm">
-                        <option value="" disabled>Select a genre</option>
-                        {genres.map(g => <option key={g} value={g}>{g}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700">Cover Image</label>
-                    <input id="thumbnail" type="file" onChange={handleFileChange} required accept="image/*" className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                </div>
-                
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-                
-                <button type="submit" disabled={isSubmitting} className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">
-                    {isSubmitting ? 'Publishing...' : 'Publish Story'}
-                </button>
-            </form>
-        </div>
+            </div>
+        </WavyBackground>
     );
 }
