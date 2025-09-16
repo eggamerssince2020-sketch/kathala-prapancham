@@ -47,7 +47,7 @@ export default function Header() {
                   leaveTo="transform opacity-0 scale-95"
                 >
                   {/* --- THIS IS THE UPDATED LINE --- */}
-                  <Menu.Items className="origin-top-right absolute right-0 mt-2 w-60 rounded-md shadow-lg bg-white/80 backdrop-blur-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
+                  <Menu.Items className="origin-top-right absolute right-0 mt-2 w-60 rounded-md shadow-lg bg-white/95 backdrop-blur-3xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
                     <div className="flex items-center gap-3 px-4 py-3 bg-black/10 border-b border-gray-900/10">
                       <img
                         className="h-11 w-11 rounded-full border-2 border-blue-400 object-cover"

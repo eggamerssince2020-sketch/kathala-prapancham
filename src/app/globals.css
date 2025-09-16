@@ -1,10 +1,25 @@
 @import "tailwindcss";
 
+/* Set base background color matching WavyBackground component */
 body {
-  /* 
-    This is the crucial rule. It sets a base background color for the entire page, 
-    matching the 'backgroundFill' of our WavyBackground component.
-    This fixes the issue where the background turned white when scrolling down.
-  */
-  background-color: #fefae0; 
+  background-color: #fefae0;
+}
+
+/* Ensure .story-content output from the rich text editor is visually clean and readable */
+.story-content p {
+  margin-bottom: 1em;
+}
+
+.story-content ol,
+.story-content ul {
+  margin-left: 1.5em;
+  margin-bottom: 1em;
+}
+
+.story-content a {
+  color: #f97316; /* matches Tailwind's orange-500 */
+}
+
+.story-content a:hover {
+  text-decoration: underline;
 }
