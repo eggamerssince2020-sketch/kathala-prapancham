@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image'; // <-- 1. IMPORT THE IMAGE COMPONENT
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
@@ -14,7 +14,6 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-white/30 backdrop-blur-lg shadow-sm">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* --- 2. UPDATED SITE LOGO SECTION --- */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-3">
               <Image
@@ -47,7 +46,8 @@ export default function Header() {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="origin-top-right absolute right-0 mt-2 w-60 rounded-md shadow-lg bg-white/50 backdrop-blur-xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
+                  {/* --- THIS IS THE UPDATED LINE --- */}
+                  <Menu.Items className="origin-top-right absolute right-0 mt-2 w-60 rounded-md shadow-lg bg-white/80 backdrop-blur-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
                     <div className="flex items-center gap-3 px-4 py-3 bg-black/10 border-b border-gray-900/10">
                       <img
                         className="h-11 w-11 rounded-full border-2 border-blue-400 object-cover"
@@ -81,7 +81,6 @@ export default function Header() {
                           </Link>
                         )}
                       </Menu.Item>
-                      {/* --- 3. DYNAMIC LINK FIX FOR VERCEL --- */}
                       <Menu.Item>
                         {({ active }) => (
                           <a 
