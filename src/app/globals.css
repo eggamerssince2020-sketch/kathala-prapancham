@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+body {
+  /* 
+    This is the crucial rule. It sets a base background color for the entire page, 
+    matching the 'backgroundFill' of our WavyBackground component.
+    This fixes the issue where the background turned white when scrolling down.
+  */
+  background-color: #fefae0; 
+}
