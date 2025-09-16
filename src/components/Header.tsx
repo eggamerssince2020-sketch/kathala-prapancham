@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image'; // <-- 1. IMPORT THE IMAGE COMPONENT
 import { useAuth } from '@/context/AuthContext';
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
@@ -10,14 +11,22 @@ export default function Header() {
   const { user, logOut } = useAuth();
 
   return (
-    // --- 1. APPLIED FROSTED GLASS EFFECT TO HEADER ---
     <header className="sticky top-0 z-50 bg-white/30 backdrop-blur-lg shadow-sm">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Site Title/Logo */}
+          {/* --- 2. UPDATED SITE LOGO SECTION --- */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-gray-800 hover:text-gray-900 transition-colors">
-              Kathala Prapancham
+            <Link href="/" className="flex items-center space-x-3">
+              <Image
+                src="/logo.png" // Assumes your logo is saved as 'logo.png' in the 'public' folder
+                alt="Kathala Prapancham Logo"
+                width={40}
+                height={40}
+                priority // Helps load the logo faster
+              />
+              <span className="text-2xl font-bold text-gray-800 hover:text-gray-900 transition-colors hidden sm:block">
+                Kathala Prapancham
+              </span>
             </Link>
           </div>
 
@@ -25,7 +34,6 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             {user ? (
               <Menu as="div" className="relative">
-                {/* --- 4. UPDATED HAMBURGER HOVER EFFECT --- */}
                 <Menu.Button className="flex items-center justify-center p-2 rounded-md hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800">
                   <span className="sr-only">Open menu</span>
                   <HiMenu className="h-6 w-6 text-gray-800" />
@@ -40,9 +48,7 @@ export default function Header() {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  {/* --- 2. APPLIED FROSTED GLASS EFFECT TO DROPDOWN --- */}
                   <Menu.Items className="origin-top-right absolute right-0 mt-2 w-60 rounded-md shadow-lg bg-white/50 backdrop-blur-xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
-                    {/* --- 3. UPDATED PROFILE SECTION BACKGROUND --- */}
                     <div className="flex items-center gap-3 px-4 py-3 bg-black/10 border-b border-gray-900/10">
                       <img
                         className="h-11 w-11 rounded-full border-2 border-blue-400 object-cover"
@@ -102,7 +108,6 @@ export default function Header() {
                 </Transition>
               </Menu>
             ) : (
-              // --- LOGGED-OUT VIEW (Unchanged) ---
               <>
                 <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-gray-900">
                   Log In
