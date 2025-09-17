@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
 
 export default function Navbar() {
-  const { user, logOut } = useAuth();
+  const { user, logout } = useAuth();
   
   return (
     <nav className="flex justify-between items-center p-4 bg-white border-b">
@@ -20,7 +20,7 @@ export default function Navbar() {
               <FaUserCircle className="w-8 h-8 text-gray-600 hover:text-blue-600" />
             </Link>
             <button 
-              onClick={logOut} 
+              onClick={logout} 
               className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
             >
               Logout
