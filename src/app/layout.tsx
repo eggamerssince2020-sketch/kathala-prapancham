@@ -6,6 +6,7 @@ import "./globals.css";
 import { AuthContextProvider } from "@/context/AuthContext";
 import Header from "@/components/Header";
 import { WavyBackground } from "@/components/WavyBackground"; // <-- Import the new component
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"] });
 
