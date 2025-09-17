@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
 
 export default function Navbar() {
-  const { user, logout } = useAuth(); // This line is now correct.
+const { user, logout } = useAuth(); // It MUST be 'logout' (lowercase)
   
   return (
     <nav className="flex justify-between items-center p-4 bg-white border-b">
