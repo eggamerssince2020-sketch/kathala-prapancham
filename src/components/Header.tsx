@@ -8,7 +8,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { HiMenu, HiPencilAlt, HiBookmark, HiUser, HiOutlineLogout } from 'react-icons/hi';
 
 export default function Header() {
-  const { user, logOut } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 bg-white/30 backdrop-blur-lg shadow-sm">
@@ -97,7 +97,7 @@ export default function Header() {
                       <Menu.Item>
                         {({ active }) => (
                           <button
-                            onClick={logOut}
+                            onClick={logout}
                             className={`${active ? 'bg-red-500/20' : ''} flex w-full items-center px-4 py-2.5 text-sm font-medium text-red-600`}
                           >
                             <HiOutlineLogout className="mr-3 h-5 w-5" />
