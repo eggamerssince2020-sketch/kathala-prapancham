@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { FaUserCircle } from "react-icons/fa";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth(); // This line is now correct.
   
   return (
     <nav className="flex justify-between items-center p-4 bg-white border-b">
@@ -13,7 +13,6 @@ export default function Navbar() {
       <div>
         {user ? (
           <div className="flex items-center gap-6">
-            {/* New link for authors */}
             <Link href="/create-story" className="font-semibold text-blue-600 hover:underline">Write a Story</Link>
             
             <Link href="/profile">
