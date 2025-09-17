@@ -8,7 +8,7 @@ import {
   signOut,
   updateProfile,
   User as FirebaseUser,
-  sendPasswordResetEmail, // <-- 1. ADDED THIS IMPORT
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, firestore } from "../../firebase";
@@ -26,14 +26,15 @@ export interface AppUser extends FirebaseUser {
   profile?: UserProfile; 
 }
 
-// --- 2. UPDATED THE CONTEXT INTERFACE ---
+// --- 1. UPDATED THE CONTEXT INTERFACE ---
+// Renamed 'logOut' to 'logout' for consistency
 interface AuthContextType {
   user: AppUser | null;
   loading: boolean;
   signUp: (username: string, email: string, password:string) => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
-  logOut: () => Promise<void>;
-  sendPasswordReset: (email: string) => Promise<void>; // <-- Added this line
+  logout: () => Promise<void>; // <-- Renamed here
+  sendPasswordReset: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,18 +94,18 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const logOut = async () => {
+  // --- 2. RENAMED THE FUNCTION DEFINITION ---
+  const logout = async () => { // <-- Renamed here
     await signOut(auth);
   };
 
-  // --- 3. DEFINED THE NEW PASSWORD RESET FUNCTION ---
   const sendPasswordReset = async (email: string) => {
     await sendPasswordResetEmail(auth, email);
   };
 
   return (
-    // --- 4. ADDED THE NEW FUNCTION TO THE PROVIDER'S VALUE ---
-    <AuthContext.Provider value={{ user, loading, signUp, logIn, logOut, sendPasswordReset }}>
+    // --- 3. UPDATED THE FUNCTION IN THE PROVIDER'S VALUE ---
+    <AuthContext.Provider value={{ user, loading, signUp, logIn, logout, sendPasswordReset }}>
       {children}
     </AuthContext.Provider>
   );
