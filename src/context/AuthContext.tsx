@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -23,17 +24,17 @@ interface UserProfile {
 }
 
 export interface AppUser extends FirebaseUser {
-  profile?: UserProfile; 
+  profile?: UserProfile;
 }
 
-// --- 1. UPDATED THE CONTEXT INTERFACE ---
-// Renamed 'logOut' to 'logout' for consistency
+// --- 1. THE BULLETPROOF FIX: ADD BOTH FUNCTION NAMES ---
 interface AuthContextType {
   user: AppUser | null;
   loading: boolean;
-  signUp: (username: string, email: string, password:string) => Promise<void>;
+  signUp: (username: string, email: string, password: string) => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>; // <-- Renamed here
+  logout: () => Promise<void>;
+  logOut: () => Promise<void>; // Add the old name back to satisfy the cache
   sendPasswordReset: (email: string) => Promise<void>;
 }
 
@@ -79,11 +80,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
       const userDocRef = doc(firestore, "users", fbUser.uid);
       await setDoc(userDocRef, userProfileData);
 
-      setUser({
-        ...fbUser,
-        profile: userProfileData,
-      });
-
+      setUser({ ...fbUser, profile: userProfileData });
     } catch (error) {
       console.error("Error during sign up:", error);
       throw error;
@@ -94,8 +91,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  // --- 2. RENAMED THE FUNCTION DEFINITION ---
-  const logout = async () => { // <-- Renamed here
+  const logout = async () => {
     await signOut(auth);
   };
 
@@ -104,8 +100,16 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    // --- 3. UPDATED THE FUNCTION IN THE PROVIDER'S VALUE ---
-    <AuthContext.Provider value={{ user, loading, signUp, logIn, logout, sendPasswordReset }}>
+    // --- 2. PROVIDE THE SAME FUNCTION UNDER BOTH NAMES ---
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      signUp, 
+      logIn, 
+      logout: logout, // The new, correct name
+      logOut: logout, // The old name, pointing to the same function
+      sendPasswordReset 
+    }}>
       {children}
     </AuthContext.Provider>
   );
