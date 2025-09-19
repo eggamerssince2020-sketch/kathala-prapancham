@@ -27,18 +27,16 @@
         "./src/*"
       ]
     },
-    "target": "ES2017"
+    "target": "ES2017",
+    "types": ["node", "estree", "json-schema", "json5"]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "postcss.config.mjs",
-    "declarations.d.ts" 
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "functions"
+    "node_modules"
   ]
 }
